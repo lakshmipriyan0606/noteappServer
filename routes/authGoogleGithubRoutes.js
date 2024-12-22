@@ -5,6 +5,9 @@ import User from "../model/user.js";
 
 const authGoogleGithubRoutes = express.Router();
 
+const getFrontendUrl = () =>
+  process.env.BASE_URL || "http://localhost:5713";
+
 authGoogleGithubRoutes.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
@@ -16,20 +19,27 @@ authGoogleGithubRoutes.get(
   async (req, res) => {
     try {
       const googleUser = req.user;
-      // console.log("googleUser: ", googleUser);
+
       if (!googleUser) {
-        return res.status(401).json({ error: "Unauthorized" });
+        return res
+          .status(401)
+          .json({ error: "Unauthorized: Google user not found" });
       }
 
       const { id, displayName, emails } = googleUser;
-
       const email = emails?.[0]?.value;
+
+      if (!email) {
+        return res
+          .status(400)
+          .json({ error: "Email not available from Google" });
+      }
 
       let user = await User.findOne({ email });
 
       if (!user) {
         user = new User({
-          name: displayName,
+          name: displayName || "Google User",
           email,
           unquieId: id,
           authProvider: "google",
@@ -37,17 +47,15 @@ authGoogleGithubRoutes.get(
         await user.save();
       }
 
-      const payloadToken = {
-        id,
-        email: email,
-      };
-
+      const payloadToken = { id: user.unquieId, email: user.email };
       const token = jwt.sign(payloadToken, process.env.JWT_SECRET, {
         expiresIn: "1d",
       });
 
+      const frontendUrl = getFrontendUrl();
+      console.log('frontendUrl: ', frontendUrl);
       res.redirect(
-        `https://noteappnew-dh6y.vercel.app/auth/success?token=${token}&name=${displayName}`
+        `${frontendUrl}/auth/success?token=${token}&name=${user.name}`
       );
     } catch (err) {
       console.error("Error during Google authentication callback:", err);
@@ -56,7 +64,6 @@ authGoogleGithubRoutes.get(
   }
 );
 
-// GitHub Authentication
 authGoogleGithubRoutes.get(
   "/auth/github",
   passport.authenticate("github", { scope: ["user:email"] })
@@ -65,33 +72,39 @@ authGoogleGithubRoutes.get(
 authGoogleGithubRoutes.get(
   "/auth/github/callback",
   passport.authenticate("github", { failureRedirect: "/" }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const user = req.user;
-      if (!user) {
-        return res.status(401).json({ error: "Unauthorized" });
+      const githubUser = req.user;
+
+      if (!githubUser) {
+        return res
+          .status(401)
+          .json({ error: "Unauthorized: GitHub user not found" });
       }
+
+      const { id, displayName, emails } = githubUser;
+      const email = emails?.[0]?.value || `${id}@github.com`
+
+      let user = await User.findOne({ email });
 
       if (!user) {
         user = new User({
-          name: user.displayName,
-          email: user.id,
-          unquieId: user.id,
+          name: displayName || "GitHub User",
+          email,
+          unquieId: id,
           authProvider: "github",
         });
+        await user.save();
       }
 
-      const payloadToken = {
-        id: user?.id,
-        email: user?.id,
-      };
-
+      const payloadToken = { id: user.unquieId, email: user.email };
       const token = jwt.sign(payloadToken, process.env.JWT_SECRET, {
         expiresIn: "1d",
       });
 
+      const frontendUrl = getFrontendUrl();
       res.redirect(
-        `https://noteappnew-dh6y.vercel.app/auth/success?token=${token}&name=${user.displayName}`
+        `${frontendUrl}/auth/success?token=${token}&name=${user.name}`
       );
     } catch (err) {
       console.error("Error during GitHub authentication callback:", err);

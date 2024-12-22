@@ -15,13 +15,21 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
-
+// Middleware
 app.use(express.json());
 
 app.use(
+  cors({
+    origin: process.env.BASE_URL || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+
+app.use(
   session({
-    secret: "default_secret",
+    secret: process.env.SESSION_SECRET || "default_secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -29,23 +37,16 @@ app.use(
     },
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-// app.use(
-//   cors({
-//     origin: "http://your-frontend-url.com",
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//   })
-// );
-
-// Routes
-
-const GITHUB_APP_SECRET = process.env.GITHUB_APP_SECRET;
 const GITHUB_APP_ID = process.env.GITHUB_APP_ID;
+const GITHUB_APP_SECRET = process.env.GITHUB_APP_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const BASE_URL = process.env.BASE_URL || "http://localhost:4000";
+console.log('BASE_URL: ', BASE_URL);
 
 const GitHubStrategy = passportGithub.Strategy;
 
@@ -54,7 +55,7 @@ passport.use(
     {
       clientID: GITHUB_APP_ID,
       clientSecret: GITHUB_APP_SECRET,
-      callbackURL: "/auth/github/callback",
+      callbackURL: `${BASE_URL}/auth/github/callback`,
     },
     (accessToken, refreshToken, profile, done) => {
       return done(null, profile);
@@ -67,7 +68,7 @@ passport.use(
     {
       clientID: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/callback",
+      callbackURL: `${BASE_URL}/auth/google/callback`
     },
     (accessToken, refreshToken, profile, done) => {
       console.log("Google Strategy Initialized");
@@ -79,16 +80,9 @@ passport.use(
 passport.serializeUser((user, done) => {
   done(null, user);
 });
+
 passport.deserializeUser((obj, done) => {
   done(null, obj);
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  if (res.headersSent) {
-    return next(err);
-  }
-  res.status(err.status || 500).json({ error: err.message });
 });
 
 app.use("/api", authRouter);
@@ -104,16 +98,20 @@ app.post("/api/logout", (req, res) => {
   });
 });
 
+app.get("/", (req, res) => {
+  res.send("Welcome to NoteApp Server!");
+});
 
-app.get('/',()=>{
-  res.send('Welcome noteapp server')
-})
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err.status || 500).json({ error: err.message });
+});
 
-// Start the server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-
-export default app
+export default app;
