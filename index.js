@@ -104,6 +104,11 @@ app.post("/api/logout", (req, res) => {
   });
 });
 
+
+app.get('/',()=>{
+  res.send('Welcome noteapp server')
+})
+
 // Start the server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

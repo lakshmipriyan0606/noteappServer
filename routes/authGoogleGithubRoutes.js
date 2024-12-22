@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import passport from "passport";
 import express from "express";
 import User from "../model/user.js";
-import { v4 as uuidv4 } from "uuid";
 
 const authGoogleGithubRoutes = express.Router();
 
