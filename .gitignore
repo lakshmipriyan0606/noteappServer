@@ -1,0 +1,24 @@
+# Node.js dependencies
+node_modules/
+
+# Vercel deployment settings (optional)
+.vercel/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+logs/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor configurations
+.vscode/
+.idea/
+
+# NPM package lock
+package-lock.json
+yarn.lock
