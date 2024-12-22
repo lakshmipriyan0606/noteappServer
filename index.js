@@ -17,14 +17,15 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cors())
 
-app.use(
-  cors({
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true,
+//   })
+// );
 
 app.use(
   session({
@@ -44,7 +45,7 @@ const GITHUB_APP_ID = process.env.GITHUB_APP_ID;
 const GITHUB_APP_SECRET = process.env.GITHUB_APP_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const BASE_URL = process.env.BASE_URL || "http://localhost:4000";
+const BASE_URL = process.env.BASE_URL || "http://localhost:5173";
 console.log('BASE_URL: ', BASE_URL);
 
 const GitHubStrategy = passportGithub.Strategy;
