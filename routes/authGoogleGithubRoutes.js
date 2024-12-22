@@ -48,7 +48,7 @@ authGoogleGithubRoutes.get(
       });
 
       res.redirect(
-        `http://localhost:5173/auth/success?token=${token}&name=${displayName}`
+        `https://noteappnew-dh6y.vercel.app/auth/success?token=${token}&name=${displayName}`
       );
     } catch (err) {
       console.error("Error during Google authentication callback:", err);
@@ -92,7 +92,7 @@ authGoogleGithubRoutes.get(
       });
 
       res.redirect(
-        `http://localhost:5173/auth/success?token=${token}&name=${user.displayName}`
+        `https://noteappnew-dh6y.vercel.app/auth/success?token=${token}&name=${user.displayName}`
       );
     } catch (err) {
       console.error("Error during GitHub authentication callback:", err);
