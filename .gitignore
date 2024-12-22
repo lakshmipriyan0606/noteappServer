@@ -22,3 +22,4 @@ Thumbs.db
 # NPM package lock
 package-lock.json
 yarn.lock
+.vercel
